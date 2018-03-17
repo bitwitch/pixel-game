@@ -1,7 +1,7 @@
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
 const grav = 2;
-const cameraBounds = 300; 
+const cameraBounds = 400; 
 const blocks = []; 
 
 let started = false; 
@@ -15,8 +15,13 @@ const pixel = {
   y: 40,
   width: 50,
   height: 50,
-  speed: 7,
+  speed: 10,
   vely: 0
+}
+
+const camera = { 
+  x: 0, 
+  y: 0 
 }
 
 document.addEventListener('keydown', handleKeydown); 
@@ -26,7 +31,7 @@ initStage();
 function initStage () {
   ctx.fillStyle = "#FF0000";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
-  new Block(0, canvas.height - 100, canvas.width, 100, "#000000");
+  new Block(0, canvas.height - 100, 10000, 100, "#000000");
   new Block(200, 350, 300, 100, "#000000");
   new Block(600, 150, 200, 30, "#000000");
   new Block(900, 250, 100, 10, "#000000");
@@ -60,11 +65,31 @@ function handleKeyup (e) {
   }
 }
 
+function canMoveLeft () {
+  return (
+    left && 
+    !right &&
+    pixel.x > 0 && 
+    (
+      camera.x <= 0 || 
+      pixel.x > cameraBounds 
+    )
+  )
+}
+
+function canMoveRight () {
+  return (
+    right && 
+    !left && 
+    pixel.x + pixel.width < canvas.width - cameraBounds
+  )
+}
+
 function movePixel () {
   if (!detectCollisionX(pixel)) {
-    if (left && !right && pixel.x) {
+    if (canMoveLeft()) {
       pixel.x -= pixel.speed;
-    } else if (right && !left) {
+    } else if (canMoveRight()) {
       pixel.x += pixel.speed; 
     }
   }
@@ -124,15 +149,17 @@ function Block (x, y, width, height, color) {
 }
 
 function moveWorld () {
-  if (right && (pixel.x + pixel.width > canvas.width - cameraBounds)) {
-    blocks.forEach(block => {
-      block.x -= pixel.speed;
-    });
-  } else if (left && (pixel.x < cameraBounds)) {
-    blocks.forEach(block => {
-      block.x += pixel.speed;
-    });
+  if (left && camera.x <= 0) {
+    return; 
   }
+
+  if (right && (pixel.x + pixel.width >= canvas.width - cameraBounds)) {
+    camera.x += pixel.speed; 
+    blocks.forEach(block => block.x -= pixel.speed);
+  } else if (left && (pixel.x <= cameraBounds)) {
+    camera.x -= pixel.speed; 
+    blocks.forEach(block => block.x += pixel.speed);
+  } 
 }
 
 function drawBlocks () {
@@ -144,7 +171,7 @@ function drawBlocks () {
 
 function drawCameraBounds () {
   ctx.fillStyle = "#c6c6c6";
-  ctx.fillRect(300, 0, canvas.width - 600, canvas.height); 
+  ctx.fillRect(cameraBounds, 0, canvas.width - (2 * cameraBounds), canvas.height); 
 }
 
 function draw () {
@@ -160,7 +187,7 @@ function draw () {
 
 function update (time) { // browser generated timestamp
   movePixel();
-  // moveWorld();
+  moveWorld();
   draw();
   requestAnimationFrame(update);
 }
