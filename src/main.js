@@ -1,6 +1,8 @@
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
 const grav = 2;
+const cameraBounds = 300; 
+const blocks = []; 
 
 let started = false; 
 let ground = canvas.height - 100; 
@@ -16,7 +18,6 @@ const pixel = {
   speed: 7,
   vely: 0
 }
-const blocks = []; 
 
 document.addEventListener('keydown', handleKeydown); 
 document.addEventListener('keyup', handleKeyup); 
@@ -26,8 +27,10 @@ function initStage () {
   ctx.fillStyle = "#FF0000";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
   new Block(0, canvas.height - 100, canvas.width, 100, "#000000");
-  new Block(500, 350, 300, 100, "#000000");
-  drawBlocks(); 
+  new Block(200, 350, 300, 100, "#000000");
+  new Block(600, 150, 200, 30, "#000000");
+  new Block(900, 250, 100, 10, "#000000");
+  drawBlocks();
 }
 
 function startGame () {
@@ -59,7 +62,7 @@ function handleKeyup (e) {
 
 function movePixel () {
   if (!detectCollisionX(pixel)) {
-    if (left && !right) {
+    if (left && !right && pixel.x) {
       pixel.x -= pixel.speed;
     } else if (right && !left) {
       pixel.x += pixel.speed; 
@@ -120,6 +123,18 @@ function Block (x, y, width, height, color) {
   return block;
 }
 
+function moveWorld () {
+  if (right && (pixel.x + pixel.width > canvas.width - cameraBounds)) {
+    blocks.forEach(block => {
+      block.x -= pixel.speed;
+    });
+  } else if (left && (pixel.x < cameraBounds)) {
+    blocks.forEach(block => {
+      block.x += pixel.speed;
+    });
+  }
+}
+
 function drawBlocks () {
   blocks.forEach(block => {
     ctx.fillStyle = block.color;
@@ -127,9 +142,16 @@ function drawBlocks () {
   });
 }
 
+function drawCameraBounds () {
+  ctx.fillStyle = "#c6c6c6";
+  ctx.fillRect(300, 0, canvas.width - 600, canvas.height); 
+}
+
 function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
+  drawCameraBounds();
+
   drawBlocks(); 
 
   ctx.fillStyle = "#ff0000";
@@ -137,8 +159,9 @@ function draw () {
 }
 
 function update (time) { // browser generated timestamp
-  movePixel(); 
-  draw(); 
+  movePixel();
+  // moveWorld();
+  draw();
   requestAnimationFrame(update);
 }
 
