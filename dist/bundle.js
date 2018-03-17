@@ -131,7 +131,7 @@ function handleKeyup (e) {
 
 function movePixel () {
   if (!detectCollisionX(pixel)) {
-    if (left && !right && pixel.x) {
+    if (left && !right) {
       pixel.x -= pixel.speed;
     } else if (right && !left) {
       pixel.x += pixel.speed; 
