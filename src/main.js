@@ -4,20 +4,34 @@ const grav = 2;
 
 let started = false; 
 let ground = canvas.height - 100; 
-let left, right, jump = false; 
 let canJump = true; 
 let grounded = false;
+let left, right, jump = false; 
 
 const pixel = {
-  position: {x: 20, y: 40},
-  size: 50,
+  x: 20, 
+  y: 40,
+  width: 50,
+  height: 50,
   speed: 7,
   vely: 0
 }
+const blocks = []; 
 
 document.addEventListener('keydown', handleKeydown); 
 document.addEventListener('keyup', handleKeyup); 
 initStage();
+
+function initStage () {
+  ctx.fillStyle = "#FF0000";
+  ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
+  new Block(0, canvas.height - 100, canvas.width, 100, "#000000");
+  drawBlocks(); 
+}
+
+function startGame () {
+  requestAnimationFrame(update); 
+}
 
 function handleKeydown (e) {
   if (!started && e.code === "Enter") {
@@ -42,35 +56,13 @@ function handleKeyup (e) {
   }
 }
 
-function moveLeft () {
-  console.log('moveLeft'); 
-}
-
-function moveRight () {  
-  console.log('moveRight'); 
-}
-
-function bounce () {
-  console.log('jump'); 
-}
-
-function initStage () {
-  ctx.fillStyle = "#FF0000";
-  ctx.fillRect(pixel.position.x, pixel.position.y, pixel.size, pixel.size);
-  
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
-}
-
-function startGame () {
-  requestAnimationFrame(update); 
-}
-
 function movePixel () {
-  if (left && !right) {
-    pixel.position.x -= pixel.speed;
-  } else if (right && !left) {
-    pixel.position.x += pixel.speed; 
+  if (!detectCollisionX(pixel)) {
+    if (left && !right) {
+      pixel.x -= pixel.speed;
+    } else if (right && !left) {
+      pixel.x += pixel.speed; 
+    }
   }
 
   if (grounded && canJump && jump) {
@@ -80,27 +72,65 @@ function movePixel () {
   }
 
   if (!grounded) {
-    pixel.position.y += pixel.vely; 
+    pixel.y += pixel.vely; 
     pixel.vely += grav; 
+
+    if (detectGroundCollision(pixel)) {
+      grounded = true;
+      canJump = true; 
+      pixel.vely = 0; 
+      pixel.y = ground - pixel.height;
+    } 
   }
+}
 
-  if ((pixel.position.y + pixel.size) + pixel.vely >= ground) {
-    grounded = true;
-    canJump = true; 
-    pixel.vely = 0; 
-    pixel.position.y = ground - pixel.size;
-  } 
+function detectCollisionX (entity) {
+  return false; 
+}
 
+// TODO: finish implementing 
+function detectGroundCollision (entity) {
+  const { length } = blocks; 
+  for (let i=0; i<length; i++) {
+    let block = blocks[i]; 
+    if (isBelow(block, entity)) {
+      // check if entity is ABOUT to collide with block 
+      if ((entity.y + entity.height) + entity.vely >= block.y) {
+        return true; 
+      }
+    }
+  }
+  return false; 
+}
+
+function isBelow (block, entity) {
+  return (
+    block.y >= entity.y + entity.height && 
+    block.x < entity.x + entity.width && 
+    block.x + block.width > entity.x
+  );
+}
+
+function Block (x, y, width, height, color) {
+  const block = { x, y, width, height, color }; 
+  blocks.push(block); 
+  return block;
+}
+
+function drawBlocks () {
+  blocks.forEach(block => {
+    ctx.fillStyle = block.color;
+    ctx.fillRect(block.x, block.y, block.width, block.height);
+  });
 }
 
 function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
+  drawBlocks(); 
+
   ctx.fillStyle = "#ff0000";
-  ctx.fillRect(pixel.position.x, pixel.position.y, pixel.size, pixel.size); 
-  
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+  ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height); 
 }
 
 function update (time) { // browser generated timestamp
@@ -108,9 +138,6 @@ function update (time) { // browser generated timestamp
   draw(); 
   requestAnimationFrame(update);
 }
-
-
-// setInterval(draw, 10);
 
 /*
   Get User Input
@@ -122,8 +149,4 @@ function update (time) { // browser generated timestamp
   scroll screen based on users position in the 'world' 
 
 */
-
-
-
-
 
