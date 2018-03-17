@@ -70,7 +70,7 @@
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
 const grav = 2;
-const cameraBounds = 400; 
+const worldEnd = 10000; 
 const blocks = []; 
 
 let started = false; 
@@ -90,21 +90,39 @@ const pixel = {
 
 const camera = { 
   x: 0, 
-  y: 0 
+  y: 0,
+  boxBound: 400
 }
 
 document.addEventListener('keydown', handleKeydown); 
 document.addEventListener('keyup', handleKeyup); 
 initStage();
 
+
+
 function initStage () {
-  ctx.fillStyle = "#FF0000";
+  ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
+
   new Block(0, canvas.height - 100, 10000, 100, "#000000");
   new Block(200, 350, 300, 100, "#000000");
   new Block(600, 150, 200, 30, "#000000");
   new Block(900, 250, 100, 10, "#000000");
-  drawBlocks();
+
+
+  new Block(1032, 221, 321, 50, "#000000");
+  new Block(1244, 422, 400, 78, "#000000");
+  new Block(1312, 120, 200, 211, "#000000");
+  new Block(1727, 175, 210, 23, "#000000");
+  new Block(1963, 404, 326, 42, "#000000");
+  new Block(2221, 95, 427, 30, "#000000");
+  new Block(2338, 251, 112, 12, "#000000");
+  new Block(3075, 237, 76, 115, "#000000");
+  new Block(3531, 482, 360, 14, "#000000");
+  new Block(4004, 333, 120, 11, "#000000");
+  new Block(4246, 203, 222, 25, "#000000");
+
+  drawEntities(blocks); 
 }
 
 function startGame () {
@@ -141,7 +159,7 @@ function canMoveLeft () {
     pixel.x > 0 && 
     (
       camera.x <= 0 || 
-      pixel.x > cameraBounds 
+      pixel.x > camera.boxBound 
     )
   )
 }
@@ -150,7 +168,11 @@ function canMoveRight () {
   return (
     right && 
     !left && 
-    pixel.x + pixel.width < canvas.width - cameraBounds
+    pixel.x + pixel.width < canvas.width &&
+    (
+      camera.x + canvas.width >= worldEnd || 
+      pixel.x + pixel.width < canvas.width - camera.boxBound
+    )
   )
 }
 
@@ -222,35 +244,35 @@ function moveWorld () {
     return; 
   }
 
-  if (right && (pixel.x + pixel.width >= canvas.width - cameraBounds)) {
+  if (right && (pixel.x + pixel.width >= canvas.width - camera.boxBound)) {
     camera.x += pixel.speed; 
     blocks.forEach(block => block.x -= pixel.speed);
-  } else if (left && (pixel.x <= cameraBounds)) {
+  } else if (left && (pixel.x <= camera.boxBound)) {
     camera.x -= pixel.speed; 
     blocks.forEach(block => block.x += pixel.speed);
   } 
 }
 
-function drawBlocks () {
-  blocks.forEach(block => {
-    ctx.fillStyle = block.color;
-    ctx.fillRect(block.x, block.y, block.width, block.height);
+function drawEntities (collection) {
+  collection.forEach(item => {
+    ctx.fillStyle = item.color;
+    ctx.fillRect(item.x, item.y, item.width, item.height);
   });
-}
+} 
 
-function drawCameraBounds () {
+function drawCameraBound () {
   ctx.fillStyle = "#c6c6c6";
-  ctx.fillRect(cameraBounds, 0, canvas.width - (2 * cameraBounds), canvas.height); 
+  ctx.fillRect(camera.boxBound, 0, canvas.width - (2 * camera.boxBound), canvas.height); 
 }
 
 function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawCameraBounds();
+  drawCameraBound();
 
-  drawBlocks(); 
+  drawEntities(blocks);
 
-  ctx.fillStyle = "#ff0000";
+  ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height); 
 }
 
@@ -262,6 +284,21 @@ function update (time) { // browser generated timestamp
 }
 
 /*
+
+  COLOR PALLETTE: 
+
+    buildings: 
+      lighter blue #00b0bf
+      mid blue #00818d
+      mid blue #005862
+      dark blue #00414a
+
+
+    purple #dacbf0
+    pink #f5b9f4
+    orange #f8cb92
+
+
   Get User Input
   - add event listeners to key down events 
   - wasd/arrows, space/j
