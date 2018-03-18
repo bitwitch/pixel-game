@@ -69,6 +69,13 @@
 
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
+
+const blueBuildings = new Image(); 
+blueBuildings.src = "https://i.imgur.com/hh0O2uW.png";
+blueBuildings.onload = function () {
+  console.log('image loaded');
+}
+
 const grav = 2;
 const worldEnd = 10000; 
 const blocks = []; 
@@ -101,26 +108,25 @@ initStage();
 
 
 function initStage () {
+  ctx.drawImage(blueBuildings, 0, 0); 
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
 
-  new Block(0, canvas.height - 100, 10000, 100, "#000000");
-  new Block(200, 350, 300, 100, "#000000");
-  new Block(600, 150, 200, 30, "#000000");
-  new Block(900, 250, 100, 10, "#000000");
-
-
-  new Block(1032, 221, 321, 50, "#000000");
-  new Block(1244, 422, 400, 78, "#000000");
-  new Block(1312, 120, 200, 211, "#000000");
-  new Block(1727, 175, 210, 23, "#000000");
-  new Block(1963, 404, 326, 42, "#000000");
-  new Block(2221, 95, 427, 30, "#000000");
-  new Block(2338, 251, 112, 12, "#000000");
-  new Block(3075, 237, 76, 115, "#000000");
-  new Block(3531, 482, 360, 14, "#000000");
-  new Block(4004, 333, 120, 11, "#000000");
-  new Block(4246, 203, 222, 25, "#000000");
+  new Block(0, canvas.height - 100, 10000, 100, "#429b80");
+  new Block(200, 350, 300, 100, "#429b80");
+  new Block(600, 150, 200, 30, "#429b80");
+  new Block(900, 250, 100, 10, "#429b80");
+  new Block(1032, 221, 321, 50, "#429b80");
+  new Block(1244, 422, 400, 78, "#429b80");
+  new Block(1312, 120, 200, 211, "#429b80");
+  new Block(1727, 175, 210, 23, "#429b80");
+  new Block(1963, 404, 326, 42, "#429b80");
+  new Block(2221, 95, 427, 30, "#429b80");
+  new Block(2338, 251, 112, 12, "#429b80");
+  new Block(3075, 237, 76, 115, "#429b80");
+  new Block(3531, 482, 360, 14, "#429b80");
+  new Block(4004, 333, 120, 11, "#429b80");
+  new Block(4246, 203, 222, 25, "#429b80");
 
   drawEntities(blocks); 
 }
@@ -216,7 +222,7 @@ function detectGroundCollision (entity) {
   for (let i=0; i<length; i++) {
     let block = blocks[i]; 
     if (isBelow(block, entity)) {
-      // check if entity is ABOUT to collide with block  
+      // check if entity is ABOUT to collide with block
       if (entity.y + entity.height + entity.vely >= block.y) {
         return block; 
       }
@@ -267,10 +273,10 @@ function drawCameraBound () {
 
 function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawCameraBound();
-
+  
+  ctx.drawImage(blueBuildings, 0, 0, canvas.width, canvas.height); 
   drawEntities(blocks);
+  // drawCameraBound();
 
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height); 
@@ -283,6 +289,7 @@ function update (time) { // browser generated timestamp
   requestAnimationFrame(update);
 }
 
+ 
 /*
 
   COLOR PALLETTE: 
