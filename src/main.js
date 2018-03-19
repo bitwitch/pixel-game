@@ -2,14 +2,18 @@ const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
 
 const blueBuildings = new Image(); 
-blueBuildings.src = "https://i.imgur.com/hh0O2uW.png";
+blueBuildings.src = "https://i.imgur.com/B5wdMyB.png";
 blueBuildings.onload = function () {
   console.log('image loaded');
 }
 
 const grav = 2;
 const worldEnd = 10000; 
+const darkGreen = "#367f69"; 
+const entities = []; 
 const blocks = []; 
+const buildings = [];
+const foreground = []; 
 
 let started = false; 
 let ground = canvas.height - 100; 
@@ -23,13 +27,14 @@ const pixel = {
   width: 50,
   height: 50,
   speed: 10,
+  jumpSpeed: 30,
   vely: 0
 }
 
 const camera = { 
   x: 0, 
   y: 0,
-  boxBound: 400
+  boxBound: 450
 }
 
 document.addEventListener('keydown', handleKeydown); 
@@ -37,29 +42,50 @@ document.addEventListener('keyup', handleKeyup);
 initStage();
 
 
-
 function initStage () {
   ctx.drawImage(blueBuildings, 0, 0); 
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
 
-  new Block(0, canvas.height - 100, 10000, 100, "#429b80");
-  new Block(200, 350, 300, 100, "#429b80");
-  new Block(600, 150, 200, 30, "#429b80");
-  new Block(900, 250, 100, 10, "#429b80");
-  new Block(1032, 221, 321, 50, "#429b80");
-  new Block(1244, 422, 400, 78, "#429b80");
-  new Block(1312, 120, 200, 211, "#429b80");
-  new Block(1727, 175, 210, 23, "#429b80");
-  new Block(1963, 404, 326, 42, "#429b80");
-  new Block(2221, 95, 427, 30, "#429b80");
-  new Block(2338, 251, 112, 12, "#429b80");
-  new Block(3075, 237, 76, 115, "#429b80");
-  new Block(3531, 482, 360, 14, "#429b80");
-  new Block(4004, 333, 120, 11, "#429b80");
-  new Block(4246, 203, 222, 25, "#429b80");
+  new Block(0, canvas.height - 180, 190, 180, darkGreen);
+  new Block(200, canvas.height - 100, 400, 100, darkGreen);
+  new Block(650, canvas.height - 100, 600, 100, darkGreen);
+  new Block(1350, canvas.height - 100, 500, 100, darkGreen);
+  new Block(1950, canvas.height - 100, 500, 100, darkGreen);
 
-  drawEntities(blocks); 
+  new Block(2600, canvas.height - 200, 300, 200, darkGreen);
+  new Block(2900, canvas.height - 100, 300, 100, darkGreen);
+
+  new Block(3300, canvas.height - 150, 300, 150, darkGreen);
+  new Block(3500, canvas.height - 300, 300, 300, darkGreen);
+  new Block(3750, canvas.height - 100, 300, 100, darkGreen);
+
+  // tall skinny section
+  new Block(4200, canvas.height - 250, 60, 250, darkGreen);
+  new Block(4500, canvas.height - 400, 60, 400, darkGreen);
+  new Block(4900, canvas.height - 50, 60, 50, darkGreen);
+
+  new Block(5200, canvas.height - 127, 200, 127, darkGreen);
+  new Block(5400, canvas.height - 100, 400, 10, darkGreen);
+  new Block(5800, canvas.height - 127, 200, 127, darkGreen);
+
+  new Block(6300, canvas.height - 50, 400, 50, darkGreen);
+  new Block(6900, canvas.height - 200, 200, 200, darkGreen);
+  new Block(7300, canvas.height - 400, 200, 400, darkGreen);
+
+  // inside building 
+  new Building(7750, canvas.height - 450, 600, 250, "#57cca8");
+  new Block(7750, canvas.height - 200, 600, 200, darkGreen);
+  new Block(7750, 0, 600, canvas.height - 450, darkGreen);
+  new Foreground(7950, canvas.height - 450, 40, 250, darkGreen);
+  new Foreground(8150, canvas.height - 450, 40, 250, darkGreen);
+
+  
+
+  
+
+  console.log({buildings, foreground})
+  // drawEntities(blocks); 
 }
 
 function startGame () {
@@ -138,7 +164,7 @@ function movePixel () {
   }
 
   if (grounded && canJump && jump) {
-    pixel.vely = -30; 
+    pixel.vely = -pixel.jumpSpeed; 
     canJump = false; 
     grounded = false; 
   }
@@ -172,8 +198,23 @@ function isBelow (block, entity) {
 
 function Block (x, y, width, height, color) {
   const block = { x, y, width, height, color }; 
+  entities.push(block); 
   blocks.push(block); 
   return block;
+}
+
+function Building (x, y, width, height, color) {
+  const building = { x, y, width, height, color }; 
+  entities.push(building); 
+  buildings.push(building); 
+  return building;
+}
+
+function Foreground (x, y, width, height, color) {
+  const item = { x, y, width, height, color }; 
+  entities.push(item); 
+  foreground.push(item); 
+  return item;
 }
 
 function moveWorld () {
@@ -183,18 +224,23 @@ function moveWorld () {
 
   if (right && (pixel.x + pixel.width >= canvas.width - camera.boxBound)) {
     camera.x += pixel.speed; 
-    blocks.forEach(block => block.x -= pixel.speed);
+    for (let i=0, len = entities.length; i < len; i++) {
+      entities[i].x -= pixel.speed; 
+    }
   } else if (left && (pixel.x <= camera.boxBound)) {
     camera.x -= pixel.speed; 
-    blocks.forEach(block => block.x += pixel.speed);
+    for (let i=0, len = entities.length; i < len; i++) {
+      entities[i].x += pixel.speed; 
+    }
   } 
 }
 
 function drawEntities (collection) {
-  collection.forEach(item => {
+  for (let i=0, len=collection.length; i<len; i++) {
+    let item = collection[i]; 
     ctx.fillStyle = item.color;
     ctx.fillRect(item.x, item.y, item.width, item.height);
-  });
+  }
 } 
 
 function drawCameraBound () {
@@ -206,11 +252,13 @@ function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   ctx.drawImage(blueBuildings, 0, 0, canvas.width, canvas.height); 
-  drawEntities(blocks);
   // drawCameraBound();
-
+  drawEntities(entities);
+  // drawEntities(buildings);
+  
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height); 
+  drawEntities(foreground);
 }
 
 function update (time) { // browser generated timestamp
