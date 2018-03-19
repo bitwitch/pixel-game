@@ -71,13 +71,13 @@ const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
 
 const blueBuildings = new Image(); 
-blueBuildings.src = "https://i.imgur.com/B5wdMyB.png";
+blueBuildings.src = "https://i.imgur.com/1EQIOPV.png";
 blueBuildings.onload = function () {
   console.log('image loaded');
 }
 
 const grav = 2;
-const worldEnd = 10000; 
+const worldEnd = 11000; 
 const darkGreen = "#367f69"; 
 const entities = []; 
 const blocks = []; 
@@ -143,17 +143,20 @@ function initStage () {
   new Block(7300, canvas.height - 400, 200, 400, darkGreen);
 
   // inside building 
-  new Building(7750, canvas.height - 450, 600, 250, "#57cca8");
-  new Block(7750, canvas.height - 200, 600, 200, darkGreen);
-  new Block(7750, 0, 600, canvas.height - 450, darkGreen);
+  new Building(7750, canvas.height - 450, 1200, 250, "#57cca8");
   new Foreground(7950, canvas.height - 450, 40, 250, darkGreen);
   new Foreground(8150, canvas.height - 450, 40, 250, darkGreen);
+  new Foreground(8350, canvas.height - 450, 40, 250, darkGreen);
+  new Foreground(8550, canvas.height - 450, 40, 250, darkGreen);
+  new Foreground(8750, canvas.height - 450, 40, 250, darkGreen);
+  new Block(7750, canvas.height - 200, 1200, 200, darkGreen);
+  new Block(7750, 0, 1200, canvas.height - 450, darkGreen);
 
+  new Block(9100, canvas.height - 300, 300, 300, darkGreen);
+  new Block(9400, canvas.height - 150, 200, 150, darkGreen);
+
+  new Block(9800, canvas.height - 350, 100, 350, darkGreen);
   
-
-  
-
-  console.log({buildings, foreground})
   // drawEntities(blocks); 
 }
 
