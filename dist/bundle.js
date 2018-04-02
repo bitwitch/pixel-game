@@ -67,6 +67,9 @@
 /* 0 */
 /***/ (function(module, exports) {
 
+//TODO(shaw): bug at bridge section. if you jump from bridge to right building and land half on the right building, 
+// you fall through, ground collision is not detected. this is the only place this seems to occur
+
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
 
