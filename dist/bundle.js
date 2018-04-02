@@ -83,12 +83,13 @@ const entities = [];
 const blocks = []; 
 const buildings = [];
 const foreground = []; 
-
 let started = false; 
 let ground = canvas.height - 100; 
 let canJump = true; 
 let grounded = false;
-let left, right, jump = false; 
+let left = false;
+let right = false; 
+let jump = false;
 
 const pixel = {
   x: 20, 
@@ -108,13 +109,15 @@ const camera = {
 
 document.addEventListener('keydown', handleKeydown); 
 document.addEventListener('keyup', handleKeyup); 
+let fucker; 
 initStage();
-
 
 function initStage () {
   ctx.drawImage(blueBuildings, 0, 0); 
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
+
+  new Block(600, 0, 600, 300, darkGreen); 
 
   new Block(0, canvas.height - 180, 190, 180, darkGreen);
   new Block(200, canvas.height - 100, 400, 100, darkGreen);
@@ -126,7 +129,7 @@ function initStage () {
   new Block(2900, canvas.height - 100, 300, 100, darkGreen);
 
   new Block(3300, canvas.height - 150, 300, 150, darkGreen);
-  new Block(3500, canvas.height - 300, 300, 300, darkGreen);
+  fucker = new Block(3500, canvas.height - 300, 300, 300, darkGreen);
   new Block(3750, canvas.height - 100, 300, 100, darkGreen);
 
   // tall skinny section
@@ -174,6 +177,8 @@ function handleKeydown (e) {
     right = true;  
   } else if (e.code === "Space" || e.code === "KeyJ") {
     jump = true;
+  } else if (e.code === "KeyH") {
+    console.log({ pixel, fucker, right, left}); 
   }
 }
 
@@ -189,7 +194,6 @@ function handleKeyup (e) {
 
 function canMoveLeft () {
   return (
-    left && 
     !right &&
     pixel.x > 0 && 
     (
@@ -201,7 +205,6 @@ function canMoveLeft () {
 
 function canMoveRight () {
   return (
-    right && 
     !left && 
     pixel.x + pixel.width < canvas.width &&
     (
@@ -212,20 +215,40 @@ function canMoveRight () {
 }
 
 function movePixel () {
-  if (!detectCollisionX(pixel)) {
-    if (canMoveLeft()) {
+  
+  // check for roof collision
+  if (pixel.vely < 0) {
+    let roofCollisionBlock = detectRoofCollision(pixel); 
+    console.log({roofCollisionBlock});
+    if (roofCollisionBlock) {
+      pixel.vely = 0; 
+      pixel.y = roofCollisionBlock.y + roofCollisionBlock.height; 
+    }
+  }
+
+  if (left) {
+    let horizontalCollisionBlock = detectCollisionLeft(pixel);
+    if (horizontalCollisionBlock) {
+      pixel.x = horizontalCollisionBlock.x + horizontalCollisionBlock.width;
+    } else if (canMoveLeft()){
       pixel.x -= pixel.speed;
-    } else if (canMoveRight()) {
+    }
+  } else if (right) {
+    let horizontalCollisionBlock = detectCollisionRight(pixel); 
+    if (horizontalCollisionBlock) {
+      pixel.x = horizontalCollisionBlock.x - pixel.width; 
+    } else if (canMoveRight()){
       pixel.x += pixel.speed; 
     }
   }
   
-  let collision = detectGroundCollision(pixel);
-  if (collision) {
+
+  let groundCollisionBlock = detectGroundCollision(pixel);
+  if (groundCollisionBlock) {
     grounded = true;
     canJump = true;
     pixel.vely = 0; 
-    pixel.y = collision.y - pixel.height;
+    pixel.y = groundCollisionBlock.y - pixel.height;
   }  else {
     grounded = false;
   }
@@ -242,7 +265,58 @@ function movePixel () {
   }
 }
 
-function detectCollisionX (entity) {
+// function isInsideBlock(entity, block) {
+//   return (
+  
+//   );
+// }
+function detectCollisionLeft (entity) {
+  const { length } = blocks; 
+  for (let i=0; i<length; i++) {
+    let block = blocks[i]; 
+    if (entity.y + entity.height > block.y &&
+        entity.y < block.y + block.height && 
+        left &&
+        entity.x - entity.speed  < block.x + block.width &&
+        entity.x + entity.width - entity.speed > block.x)
+    {
+      return block; 
+    }
+  }
+  return false; 
+}
+
+function detectCollisionRight (entity) {
+  const { length } = blocks; 
+  for (let i=0; i<length; i++) {
+    let block = blocks[i]; 
+    if (entity.y + entity.height > block.y &&
+        entity.y < block.y + block.height && 
+        right &&
+        entity.x + entity.width + entity.speed > block.x && 
+        entity.x + entity.speed < block.x + block.width) 
+    {
+      return block; 
+    }
+  }
+  return false; 
+}
+
+function detectRoofCollision (entity) {
+  const { length } = blocks; 
+  for (let i=0; i<length; i++) {
+    let block = blocks[i]; 
+    if (
+      // block is above entity 
+      block.y + block.height <= entity.y && 
+      block.x < entity.x + entity.width && 
+      block.x + block.width > entity.x &&
+      //entity is ABOUT to collide with block
+      entity.y + entity.vely <= block.y + block.height) 
+    {
+      return block;
+    }
+  }
   return false; 
 }
 
@@ -250,22 +324,18 @@ function detectGroundCollision (entity) {
   const { length } = blocks; 
   for (let i=0; i<length; i++) {
     let block = blocks[i]; 
-    if (isBelow(block, entity)) {
-      // check if entity is ABOUT to collide with block
-      if (entity.y + entity.height + entity.vely >= block.y) {
-        return block; 
-      }
+    if (
+      // block is below entity 
+      block.y >= entity.y + entity.height && 
+      block.x < entity.x + entity.width && 
+      block.x + block.width > entity.x &&
+      //entity is ABOUT to collide with block
+      entity.y + entity.height + entity.vely >= block.y) 
+    {
+      return block; 
     }
   }
   return false; 
-}
-
-function isBelow (block, entity) {
-  return (
-    block.y >= entity.y + entity.height && 
-    block.x < entity.x + entity.width && 
-    block.x + block.width > entity.x
-  );
 }
 
 function Block (x, y, width, height, color) {
