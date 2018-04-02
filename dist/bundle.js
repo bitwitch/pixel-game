@@ -76,15 +76,19 @@ blueBuildings.onload = function () {
   console.log('image loaded');
 }
 
+const gameState = {
+  entities: [], 
+  blocks: [],
+  buildings: [],
+  foreground: [],
+  started: false,
+  gameOver: false,
+}
+
 const grav = 2;
 const worldEnd = 11000; 
 const darkGreen = "#367f69"; 
-const entities = []; 
-const blocks = []; 
-const buildings = [];
-const foreground = []; 
-let started = false; 
-let ground = canvas.height - 100; 
+
 let canJump = true; 
 let grounded = false;
 let left = false;
@@ -108,15 +112,23 @@ const camera = {
 }
 
 document.addEventListener('keydown', handleKeydown); 
-document.addEventListener('keyup', handleKeyup); 
-let fucker; 
+document.addEventListener('keyup', handleKeyup);
 initStage();
 
 function initStage () {
   ctx.drawImage(blueBuildings, 0, 0); 
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height);
+  loadLevel(); 
+  // drawEntities(blocks); 
+}
 
+function startGame () {
+  requestAnimationFrame(update); 
+}
+
+//TODO(shaw): make general function for loading any level 
+function loadLevel () {
   new Block(600, 0, 600, 300, darkGreen); 
 
   new Block(0, canvas.height - 180, 190, 180, darkGreen);
@@ -129,7 +141,6 @@ function initStage () {
   new Block(2900, canvas.height - 100, 300, 100, darkGreen);
 
   new Block(3300, canvas.height - 150, 300, 150, darkGreen);
-  fucker = new Block(3500, canvas.height - 300, 300, 300, darkGreen);
   new Block(3750, canvas.height - 100, 300, 100, darkGreen);
 
   // tall skinny section
@@ -159,18 +170,13 @@ function initStage () {
   new Block(9400, canvas.height - 150, 200, 150, darkGreen);
 
   new Block(9800, canvas.height - 350, 100, 350, darkGreen);
-  
-  // drawEntities(blocks); 
-}
-
-function startGame () {
-  requestAnimationFrame(update); 
 }
 
 function handleKeydown (e) {
-  if (!started && e.code === "Enter") {
+  if (!gameState.started && e.code === "Enter") {
+    gameState.gameOver = false; 
+    gameState.started = true; 
     startGame();
-    started = true; 
   } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
     left = true; 
   } else if (e.code === "KeyD" || e.code === "ArrowRight") {
@@ -215,11 +221,9 @@ function canMoveRight () {
 }
 
 function movePixel () {
-  
   // check for roof collision
   if (pixel.vely < 0) {
-    let roofCollisionBlock = detectRoofCollision(pixel); 
-    console.log({roofCollisionBlock});
+    let roofCollisionBlock = detectRoofCollision(pixel);
     if (roofCollisionBlock) {
       pixel.vely = 0; 
       pixel.y = roofCollisionBlock.y + roofCollisionBlock.height; 
@@ -241,7 +245,6 @@ function movePixel () {
       pixel.x += pixel.speed; 
     }
   }
-  
 
   let groundCollisionBlock = detectGroundCollision(pixel);
   if (groundCollisionBlock) {
@@ -263,17 +266,36 @@ function movePixel () {
     canJump = false; 
     grounded = false; 
   }
+
+  if (pixel.y > canvas.height) {
+    gameState.gameOver = true;
+  }
 }
 
-// function isInsideBlock(entity, block) {
-//   return (
+function doom () {
+  gameState.gameOver = true;
+  gameState.started = false;
+  gameState.entities = []; 
+  gameState.blocks = [];
+  gameState.buildings = [];
+  gameState.foreground = []; 
+
+  pixel.x = 20;  
+  pixel.y = 40;
+  pixel.width = 50;
+  pixel.height = 50;
+  pixel.speed = 10;
+  pixel.jumpSpeed = 30; 
+  pixel.vely = 0; 
+
+  camera.x = 0; 
+  camera.y = 0; 
+}
   
-//   );
-// }
 function detectCollisionLeft (entity) {
-  const { length } = blocks; 
+  const { length } = gameState.blocks; 
   for (let i=0; i<length; i++) {
-    let block = blocks[i]; 
+    let block = gameState.blocks[i]; 
     if (entity.y + entity.height > block.y &&
         entity.y < block.y + block.height && 
         left &&
@@ -287,9 +309,9 @@ function detectCollisionLeft (entity) {
 }
 
 function detectCollisionRight (entity) {
-  const { length } = blocks; 
+  const { length } = gameState.blocks; 
   for (let i=0; i<length; i++) {
-    let block = blocks[i]; 
+    let block = gameState.blocks[i]; 
     if (entity.y + entity.height > block.y &&
         entity.y < block.y + block.height && 
         right &&
@@ -303,9 +325,9 @@ function detectCollisionRight (entity) {
 }
 
 function detectRoofCollision (entity) {
-  const { length } = blocks; 
+  const { length } = gameState.blocks; 
   for (let i=0; i<length; i++) {
-    let block = blocks[i]; 
+    let block = gameState.blocks[i]; 
     if (
       // block is above entity 
       block.y + block.height <= entity.y && 
@@ -321,9 +343,9 @@ function detectRoofCollision (entity) {
 }
 
 function detectGroundCollision (entity) {
-  const { length } = blocks; 
+  const { length } = gameState.blocks; 
   for (let i=0; i<length; i++) {
-    let block = blocks[i]; 
+    let block = gameState.blocks[i]; 
     if (
       // block is below entity 
       block.y >= entity.y + entity.height && 
@@ -340,22 +362,22 @@ function detectGroundCollision (entity) {
 
 function Block (x, y, width, height, color) {
   const block = { x, y, width, height, color }; 
-  entities.push(block); 
-  blocks.push(block); 
+  gameState.entities.push(block); 
+  gameState.blocks.push(block); 
   return block;
 }
 
 function Building (x, y, width, height, color) {
   const building = { x, y, width, height, color }; 
-  entities.push(building); 
-  buildings.push(building); 
+  gameState.entities.push(building); 
+  gameState.buildings.push(building); 
   return building;
 }
 
 function Foreground (x, y, width, height, color) {
   const item = { x, y, width, height, color }; 
-  entities.push(item); 
-  foreground.push(item); 
+  gameState.entities.push(item); 
+  gameState.foreground.push(item); 
   return item;
 }
 
@@ -366,15 +388,33 @@ function moveWorld () {
 
   if (right && (pixel.x + pixel.width >= canvas.width - camera.boxBound)) {
     camera.x += pixel.speed; 
-    for (let i=0, len = entities.length; i < len; i++) {
-      entities[i].x -= pixel.speed; 
+    for (let i=0, len = gameState.entities.length; i < len; i++) {
+      gameState.entities[i].x -= pixel.speed; 
     }
   } else if (left && (pixel.x <= camera.boxBound)) {
     camera.x -= pixel.speed; 
-    for (let i=0, len = entities.length; i < len; i++) {
-      entities[i].x += pixel.speed; 
+    for (let i=0, len = gameState.entities.length; i < len; i++) {
+      gameState.entities[i].x += pixel.speed; 
     }
   } 
+}
+
+function drawGameOverScreen () {
+  ctx.fillStyle = '#000000'; 
+  ctx.fillRect(0, 0, canvas.width, canvas.height); 
+
+  ctx.font = '100px Arial'; 
+  ctx.textAlign = 'center'; 
+  ctx.fillStyle = '#ffffff'; 
+  ctx.fillText('Game Over', canvas.width / 2, canvas.height / 3);
+
+  ctx.font = '50px Arial'; 
+  ctx.fillText('Press enter to restart', canvas.width / 2, canvas.height / 1.75);
+}
+
+function drawCameraBound () {
+  ctx.fillStyle = "#c6c6c6";
+  ctx.fillRect(camera.boxBound, 0, canvas.width - (2 * camera.boxBound), canvas.height); 
 }
 
 function drawEntities (collection) {
@@ -385,32 +425,32 @@ function drawEntities (collection) {
   }
 } 
 
-function drawCameraBound () {
-  ctx.fillStyle = "#c6c6c6";
-  ctx.fillRect(camera.boxBound, 0, canvas.width - (2 * camera.boxBound), canvas.height); 
-}
-
 function draw () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   ctx.drawImage(blueBuildings, 0, 0, canvas.width, canvas.height); 
   // drawCameraBound();
-  drawEntities(entities);
+  drawEntities(gameState.entities);
   // drawEntities(buildings);
   
   ctx.fillStyle = "#d54223";
   ctx.fillRect(pixel.x, pixel.y, pixel.width, pixel.height); 
-  drawEntities(foreground);
+  drawEntities(gameState.foreground);
 }
 
 function update (time) { // browser generated timestamp
-  movePixel();
-  moveWorld();
-  draw();
-  requestAnimationFrame(update);
+  if (gameState.gameOver) {
+    drawGameOverScreen();
+    doom(); 
+    loadLevel(); // TODO(shaw): decide whos responsible for this after gameover 
+  } else {
+    movePixel();
+    moveWorld();
+    draw();
+    requestAnimationFrame(update);
+  }
 }
 
- 
 /*
 
   COLOR PALLETTE: 
