@@ -60,8 +60,6 @@ function startGame () {
 
 //TODO(shaw): make general function for loading any level 
 function loadLevel () {
-  new Block(600, 0, 600, 300, darkGreen); 
-
   new Block(0, canvas.height - 180, 190, 180, darkGreen);
   new Block(200, canvas.height - 100, 400, 100, darkGreen);
   new Block(650, canvas.height - 100, 600, 100, darkGreen);
@@ -72,6 +70,7 @@ function loadLevel () {
   new Block(2900, canvas.height - 100, 300, 100, darkGreen);
 
   new Block(3300, canvas.height - 150, 300, 150, darkGreen);
+  new Block(3500, canvas.height - 300, 300, 300, darkGreen);
   new Block(3750, canvas.height - 100, 300, 100, darkGreen);
 
   // tall skinny section
