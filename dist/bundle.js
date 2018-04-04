@@ -72,6 +72,7 @@
 
 const canvas = document.getElementById('stage'); 
 const ctx = canvas.getContext('2d');
+const tunes = new Audio('../audio/DD2W2.mp3');
 
 const blueBuildings = new Image(); 
 blueBuildings.src = "https://i.imgur.com/1EQIOPV.png";
@@ -179,6 +180,7 @@ function handleKeydown (e) {
     gameState.gameOver = false; 
     gameState.started = true; 
     startGame();
+    tunes.play(); 
   } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
     left = true; 
   } else if (e.code === "KeyD" || e.code === "ArrowRight") {
