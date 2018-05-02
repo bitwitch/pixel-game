@@ -1,0 +1,75 @@
+#editor {
+    width: 1400px;
+    height: 600px; 
+    border: 1px solid black; 
+    margin: 0 auto; 
+}
+
+#timeline {
+    width: 1400px;
+    height: 20px;
+    border: 1px solid darkgray;
+}
+
+#timeline {
+    -webkit-appearance: none;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+#timeline::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 50px;
+    height: 25px;
+    background: #de7312;
+    cursor: pointer;
+}
+
+#timeline::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #de7312;
+    cursor: pointer;
+}
+
+#height-input {
+    -webkit-appearance: slider-vertical
+}
+.selector-wrap { position: relative; }
+
+.select-color {
+    position: relative;
+    height: 200px; 
+    width: 200px;
+    border: solid 1px grey;
+}
+
+.hue {
+    position: absolute;
+    height: 30px; 
+    width: 30px; 
+    left: 0;
+    background: #f00;
+}
+
+.knob {
+    position: absolute;
+    height: 10px;
+    width: 10px;
+    bottom: 0;
+    background: crimson;
+    border: 1px solid crimson;
+    border-radius: 50%;
+}
+
+.tools {
+    margin-top: 20px; 
+    width: 50%; 
+    display: flex;
+    justify-content: space-around;
+}

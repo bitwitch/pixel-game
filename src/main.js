@@ -50,6 +50,8 @@ document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
 initStage();
 
+
+// Initialization ---
 function initStage () {
   ctx.drawImage(blueBuildings, 0, 0); 
   ctx.fillStyle = "#d54223";
@@ -106,6 +108,7 @@ function loadLevel () {
   new Block(9800, canvas.height - 350, 100, 350, darkGreen);
 }
 
+// Input ---
 function handleKeydown (e) {
   if (!gameState.started && e.code === "Enter") {
     gameState.gameOver = false; 
@@ -120,6 +123,8 @@ function handleKeydown (e) {
     jump = true;
   } else if (e.code === "KeyH") {
     console.log({ pixel, fucker, right, left}); 
+  } else if (e.code === "KeyP") {
+    tunes.paused ? tunes.play() : tunes.pause(); 
   }
 }
 
@@ -133,28 +138,7 @@ function handleKeyup (e) {
   }
 }
 
-function canMoveLeft () {
-  return (
-    !right &&
-    pixel.x > 0 && 
-    (
-      camera.x <= 0 || 
-      pixel.x > camera.boxBound 
-    )
-  )
-}
-
-function canMoveRight () {
-  return (
-    !left && 
-    pixel.x + pixel.width < canvas.width &&
-    (
-      camera.x + canvas.width >= worldEnd || 
-      pixel.x + pixel.width < canvas.width - camera.boxBound
-    )
-  )
-}
-
+// Movement ---
 function movePixel () {
   // check for roof collision
   if (pixel.vely < 0) {
@@ -207,24 +191,44 @@ function movePixel () {
   }
 }
 
-function doom () {
-  gameState.gameOver = true;
-  gameState.started = false;
-  gameState.entities = []; 
-  gameState.blocks = [];
-  gameState.buildings = [];
-  gameState.foreground = []; 
+function moveWorld () {
+  if (left && camera.x <= 0) {
+    return; 
+  }
 
-  pixel.x = 20;  
-  pixel.y = 40;
-  pixel.width = 50;
-  pixel.height = 50;
-  pixel.speed = 10;
-  pixel.jumpSpeed = 30; 
-  pixel.vely = 0; 
+  if (right && (pixel.x + pixel.width >= canvas.width - camera.boxBound)) {
+    camera.x += pixel.speed; 
+    for (let i=0, len = gameState.entities.length; i < len; i++) {
+      gameState.entities[i].x -= pixel.speed; 
+    }
+  } else if (left && (pixel.x <= camera.boxBound)) {
+    camera.x -= pixel.speed; 
+    for (let i=0, len = gameState.entities.length; i < len; i++) {
+      gameState.entities[i].x += pixel.speed; 
+    }
+  } 
+}
 
-  camera.x = 0; 
-  camera.y = 0; 
+function canMoveLeft () {
+  return (
+    !right &&
+    pixel.x > 0 && 
+    (
+      camera.x <= 0 || 
+      pixel.x > camera.boxBound 
+    )
+  )
+}
+
+function canMoveRight () {
+  return (
+    !left && 
+    pixel.x + pixel.width < canvas.width &&
+    (
+      camera.x + canvas.width >= worldEnd || 
+      pixel.x + pixel.width < canvas.width - camera.boxBound
+    )
+  )
 }
   
 function detectCollisionLeft (entity) {
@@ -295,6 +299,7 @@ function detectGroundCollision (entity) {
   return false; 
 }
 
+// Constructors ---
 function Block (x, y, width, height, color) {
   const block = { x, y, width, height, color }; 
   gameState.entities.push(block); 
@@ -316,24 +321,7 @@ function Foreground (x, y, width, height, color) {
   return item;
 }
 
-function moveWorld () {
-  if (left && camera.x <= 0) {
-    return; 
-  }
-
-  if (right && (pixel.x + pixel.width >= canvas.width - camera.boxBound)) {
-    camera.x += pixel.speed; 
-    for (let i=0, len = gameState.entities.length; i < len; i++) {
-      gameState.entities[i].x -= pixel.speed; 
-    }
-  } else if (left && (pixel.x <= camera.boxBound)) {
-    camera.x -= pixel.speed; 
-    for (let i=0, len = gameState.entities.length; i < len; i++) {
-      gameState.entities[i].x += pixel.speed; 
-    }
-  } 
-}
-
+// Drawing ---
 function drawGameOverScreen () {
   ctx.fillStyle = '#000000'; 
   ctx.fillRect(0, 0, canvas.width, canvas.height); 
@@ -373,6 +361,7 @@ function draw () {
   drawEntities(gameState.foreground);
 }
 
+// Game Loop ---
 function update (time) { // browser generated timestamp
   if (gameState.gameOver) {
     drawGameOverScreen();
@@ -384,6 +373,26 @@ function update (time) { // browser generated timestamp
     draw();
     requestAnimationFrame(update);
   }
+}
+
+function doom () {
+  gameState.gameOver = true;
+  gameState.started = false;
+  gameState.entities = []; 
+  gameState.blocks = [];
+  gameState.buildings = [];
+  gameState.foreground = []; 
+
+  pixel.x = 20;  
+  pixel.y = 40;
+  pixel.width = 50;
+  pixel.height = 50;
+  pixel.speed = 10;
+  pixel.jumpSpeed = 30; 
+  pixel.vely = 0; 
+
+  camera.x = 0; 
+  camera.y = 0; 
 }
 
 /*
